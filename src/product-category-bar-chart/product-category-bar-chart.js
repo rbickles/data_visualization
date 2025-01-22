@@ -2,6 +2,21 @@ import * as d3 from "d3";
 import { showTooltip, hideTooltip } from './tooltip.js';
 import { productSalesData } from "../data/productData.js";
 
+export function renderBarChart(container) {
+  container.innerHTML = 
+  `
+    <h1>Category-Product drilldown</h1>
+      <p>
+        Click on a bar in the chart to drill down to product level.
+        <br />
+        Click in the empty space to drill up and view at category level.
+      </p>
+    <svg id="barChart" width="600" height="500"></svg>
+    <div id="tooltip" style="opacity: 0;"></div>
+  `
+  
+
+
 //* Set chart area
 const width = 500;
 const height = 300;
@@ -25,7 +40,7 @@ const sortedData = Array.from(sortedCategoryTotals.keys())
 //console.log("Sorted Data by Category Order and UnitsSold descending:", sortedData);
 
 //* Create chart elements
-const svg = d3.select("#barChart2")
+const svg = d3.select("#barChart")
   .attr("width", width)
   .attr("height", height)
   .style("border", "1px solid black")
@@ -37,7 +52,7 @@ const svg = d3.select("#barChart2")
 
 const tooltip = d3.select("#tooltip");
 
-const barChart2 = svg.append("g")
+const barChart = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`)
 
 const x = d3.scaleBand()
@@ -49,9 +64,9 @@ const y = d3.scaleLinear()
   .domain([0, d3.max(sortedCategoryTotals.values())])
   .range([innerHeight, 0])
 
-renderAxis(barChart2, x, y, innerHeight)
+renderAxis(barChart, x, y, innerHeight)
 
-barChart2.selectAll(".bar")
+barChart.selectAll(".bar")
   .data(sortedData, d => d.product)
   .enter()
   .append("rect")
@@ -81,7 +96,7 @@ barChart2.selectAll(".bar")
   })
   .on("click", (event, d) => down(svg, d));
 
-barChart2.selectAll(".label")
+barChart.selectAll(".label")
   .data(sortedCategoryTotals, d => d.category)
   .enter()
   .append("text")
@@ -126,9 +141,9 @@ const down = function (svg, d) {
     .domain([0, d3.max(filteredData, d => d.unitsSold)])
     .range([innerHeight, 0]);
 
-  renderAxis(barChart2, x2, y2, innerHeight)
+  renderAxis(barChart, x2, y2, innerHeight)
 
-  barChart2.selectAll(".bar")
+  barChart.selectAll(".bar")
     .data(filteredData, d => d.product)
     .join(
       enter => enter.append("rect")
@@ -161,7 +176,7 @@ const down = function (svg, d) {
         .remove()
     )
 
-  barChart2.selectAll(".label")
+  barChart.selectAll(".label")
     .data(filteredData, d => d.product)
     .join(
       enter => enter.append("text")
@@ -197,7 +212,7 @@ const down = function (svg, d) {
 
 //Drillup function
 const up = function (svg, d) {
-  if (barChart2.selectAll(".bar").data().length === 15) {
+  if (barChart.selectAll(".bar").data().length === 15) {
     return;
   }
 
@@ -215,9 +230,9 @@ const up = function (svg, d) {
     .domain([0, d3.max(sortedCategoryTotals.values())])
     .range([innerHeight, 0]);
 
-  renderAxis(barChart2, x, y, innerHeight)
+  renderAxis(barChart, x, y, innerHeight)
 
-  barChart2.selectAll(".bar")
+  barChart.selectAll(".bar")
     .data(sortedData, d => d.product)
     .join(
       enter => enter.append("rect")
@@ -296,7 +311,7 @@ const up = function (svg, d) {
         .remove()
     );
 
-  barChart2.selectAll(".label")
+  barChart.selectAll(".label")
     .data(sortedCategoryTotals, d => d.category)
     .join(
       enter => enter.append("text")
@@ -360,6 +375,6 @@ function renderAxis(svg, xScale, yScale, innerHeight) {
 
 
 
-
+}
 
 

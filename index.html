@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./src/style/style.css">
-    <title>D3.js Bar Chart</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./src/style/style.css">
+  <title>D3.js Bar Chart</title>
 </head>
+
 <body>
   <div>
-
-
-    <h1>Category-Product drilldown</h1>
-    <p>
-      Click on a bar in the chart to drill down to product level. 
-      <br/>
-      Click in the empty space to drill up and view at category level. 
-    </p>
-    <svg id="barChart2" width="600" height="500"></svg>
+    <nav>
+      <a href="#" onclick="loadPage('barChart')">Bar Chart</a>
+      <a href="#" onclick="loadPage('scatterPlot')">Scatter Plot</a>
+      <a href="#" onclick="loadPage('lineChart')">Line Chart</a>
+    </nav>
+    <div id="content"></div>
     <script type="module" src="./src/main.js"></script>
 
-    <div id="tooltip" style="opacity: 0;"></div>
+
 
   </div>
-    
+
 
 </body>
+
 </html>
