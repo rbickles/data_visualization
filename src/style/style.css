@@ -1,0 +1,18 @@
+
+.bar {
+  fill: steelblue;
+  transition: fill 0.2s ease; /* Smooth transition */
+}
+
+.bar-hover {
+  fill: orange; /* Hover color */
+}
+
+.bar-clicked {
+  fill: red;
+}
+
+.axis-label {
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+}
