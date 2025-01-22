@@ -137,6 +137,8 @@ const fadeOut = function (svg, d, className, filter = null) {
   if (filter) {
     selection = selection.filter(filter);
   }
+
+  
   selection.transition()
     .duration(500)
     .attr("fill-opacity", 0)
@@ -189,7 +191,7 @@ const down = function (svg, d) {
     .attr("opacity", 1);
 
   barChart2.selectAll(".bar")
-    .data(filteredData)
+    .data(filteredData, d => d.product)
     .join(
       enter => enter.append("rect")
         .attr('class', "bar")
