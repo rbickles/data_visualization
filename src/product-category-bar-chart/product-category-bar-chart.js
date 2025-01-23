@@ -43,7 +43,6 @@ const sortedData = Array.from(sortedCategoryTotals.keys())
 const svg = d3.select("#barChart")
   .attr("width", width)
   .attr("height", height)
-  .style("border", "1px solid black")
   .on("click", (event, d) => {
     if (!d3.select(event.target).classed("bar")) {
       up(svg, d)

@@ -1,5 +1,5 @@
 import { renderBarChart } from './product-category-bar-chart/product-category-bar-chart.js';
-
+import { renderRaceChart } from './bar-race/bar-race-chart.js'
 
 const loadPage = (chartType) => {
     const contentDiv = document.getElementById('content');
@@ -7,12 +7,11 @@ const loadPage = (chartType) => {
 
     if (chartType === 'barChart') {
         renderBarChart(contentDiv);
-    } else if (chartType === 'scatterPlot') {
-        renderScatterPlot(contentDiv);
-    } else if (chartType === 'lineChart') {
-        renderLineChart(contentDiv);
-    }
+    } else if (chartType === 'raceChart') {
+        renderRaceChart(contentDiv);
+    } 
 };
 
-// Load default page on startup
-window.onload = () => loadPage('barChart');
+window.loadPage = loadPage;
+document.addEventListener("DOMContentLoaded", () => loadPage('raceChart'));
+

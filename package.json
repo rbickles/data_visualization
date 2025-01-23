@@ -13,7 +13,11 @@
   "license": "ISC",
   "type": "commonjs",
   "description": "",
+  "scripts": {
+    "start": "node script.js"
+  },
   "dependencies": {
+    "csv-parser": "^3.1.0",
     "d3": "^7.9.0"
   },
   "devDependencies": {

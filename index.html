@@ -10,18 +10,15 @@
 
 <body>
   <div>
-    <nav>
-      <a href="#" onclick="loadPage('barChart')">Bar Chart</a>
-      <a href="#" onclick="loadPage('scatterPlot')">Scatter Plot</a>
-      <a href="#" onclick="loadPage('lineChart')">Line Chart</a>
+    <nav class="navbar">
+      <ul>
+        <li><a href="#" onclick="event.preventDefault(); loadPage('barChart')">Bar Chart</a></li>
+        <li><a href="#" onclick="event.preventDefault(); loadPage('raceChart')">Race Chart</a></li>
+      </ul>
     </nav>
     <div id="content"></div>
     <script type="module" src="./src/main.js"></script>
-
-
-
   </div>
-
 
 </body>
 
