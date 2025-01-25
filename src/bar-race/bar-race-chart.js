@@ -44,13 +44,16 @@ function drawChart(svg, data, width, height, margins) {
 
   const innerHeight = height - margins.top - margins.bottom;
   const innerWidth = width - margins.left - margins.right;
-  const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+  const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
   async function yearlyAnimation() {
 
     //maxx range for data is 1961-2021
-    for (let year = 1961; year <= 2021; year++) {
+    for (let year = 1961; year <= 1964; year++) {
 
+      if (!document.contains(document.getElementById("raceChart"))) {
+          break;  
+      }
       const yearlyData = data.filter(row => row.Year === year).slice(0, 10)
       console.log("year is: ", year, yearlyData)
 
