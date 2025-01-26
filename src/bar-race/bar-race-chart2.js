@@ -53,8 +53,7 @@ export async function renderRaceChart2(container) {
 
 
   const color = createColorScale(data)
-  const x = createXScale(data);
-  console.log("x", x.domain())
+  const x = createXScale();
 
   const svg = d3.select("#raceChart2")
     .attr('viewBox', `0 0 ${width} ${height}`)
@@ -64,7 +63,7 @@ export async function renderRaceChart2(container) {
 
 
   const updateBars = bars(svg, prev, next, x, color);
-
+  const updateLabels = labels(svg, prev, next, x);
   //yield svg.node();
 
   for (const keyframe of keyframes) {
@@ -72,10 +71,9 @@ export async function renderRaceChart2(container) {
       .duration(duration)
       .ease(d3.easeLinear);
 
-    console.log("keyframes", keyframe[1][0].value)
     x.domain([0, keyframe[1][0].value]);
     updateBars(keyframe, transition)
-
+    updateLabels(keyframe, transition)
     try {
       await transition.end();
     } catch (error) {
@@ -116,7 +114,7 @@ const createColorScale = function (data) {
 }
 
 // Create x and y axis scales
-const createXScale = function (data) {
+const createXScale = function () {
   return d3.scaleLinear()
     .domain([0, 1])
     .range([margins.left, width - margins.right])
@@ -142,19 +140,64 @@ const bars = function (svg, prev, next, x, color) {
           .attr("height", y.bandwidth())
           .attr("x", x(0))
           .attr("y", d => {
-            console.log("fixing domain error", x((prev.get(d.Entity) || d).value) - x(0))
-            y((prev.get(d.Entity) || d).rank)
+            return y(next.get(d) ? next.get(d).rank + 1 : barCount)
           })
           .attr("width", d => x((prev.get(d.Entity) || d).value) - x(0)),
         update => update,
         exit => exit.transition(transition).remove()
-          .attr("y", d => y((next.get(d) || d).rank))
-          .attr("x", d => x((next.get(d) || d).Beef) - x(0))
+          .attr("y", d => y((next.get(d.Entity) || d).rank))
+          .attr("width", d => {
+            console.log("exit width: ", (next.get(d.Entity) || d)?.value)
+            x((next.get(d)) || d)?.value - x(0)
+          })
       )
       .call(bar => bar.transition(transition)
         .attr("y", d => y(d.rank))
         .attr("width", d => x(d.value) - x(0)));
   }
 }
+
+const labels = function (svg, prev, next, x) {
+  const formatNumber = d3.format(",d")
+  let label = svg.append("g")
+    .style("font", "bold 12px var(--sans-serif)")
+    .attr("text-anchor", "end")
+    .selectAll("text");
+
+  return ([date, data], transition) => {
+    label = label
+    .data(data.slice(0, barCount), d => d.Entity)
+    .join(
+      enter => enter.append("text")
+        .attr("transform", d => `translate(${x((prev.get(d.Entity) || d).value)},${y((prev.get(d.Entity) || d).rank)})`)
+        .attr("y", y.bandwidth() / 2)
+        .attr("x", -6)
+        .attr("dy", "-0.25em")
+        .text(d => d.Entity)
+        .call(text => text.append("tspan")
+          .attr("fill-opacity", 0.7)
+          .attr("font-weight", "normal")
+          .attr("x", -6)
+          .attr("dy", "1.15em")),
+      update => update,
+      exit => exit.transition(transition).remove()
+        .attr("transform", d => `translate(${x((next.get(d.Entity) || d).value)},${y((next.get(d.Entity) || d).rank)})`)
+        .call(g => g.select("tspan")
+          .textTween((d) => d3.interpolateRound(d.value, (next.get(d.Entity) || d).value))
+        )
+    )
+    .call(bar => bar.transition(transition)
+      .attr("transform", d => `translate(${x(d.value)},${y(d.rank)})`)
+      .call(g => g.select("tspan")
+        .textTween((d) => (t) => formatNumber(
+          d3.interpolateNumber((prev.get(d.Entity) || d).value, d.value)(t)
+        ))
+      )
+    )}
+
+
+
+}
+
 
 
