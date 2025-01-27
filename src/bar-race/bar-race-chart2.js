@@ -7,7 +7,7 @@ const k = 10;
 const barSize = 40;
 
 const margins = { top: 20, right: 20, bottom: 20, left: 20 };
-const width = 600;
+const width = 1000;
 const height = margins.top + barSize * barCount + margins.bottom;
 
 let color;
@@ -17,7 +17,7 @@ export async function renderRaceChart2(container) {
   container.innerHTML = `
     <h1>Racing Bar Chart</h1>
     <p>
-      This chart shows the top meat consumption trends over time.
+      This chart shows the top Beef consumption trends over time.
     </p>
     <svg id="raceChart2"></svg>
   `;
@@ -57,13 +57,15 @@ export async function renderRaceChart2(container) {
 
   const svg = d3.select("#raceChart2")
     .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr("style", "max-width: 100%; height: auto;")
     .style("border", "1px solid black")
-  svg.style("opacity", 1);
 
 
 
   const updateBars = bars(svg, prev, next, x, color);
   const updateLabels = labels(svg, prev, next, x);
+  const updateAxis = axis(svg, x);
+  const updateTicker = ticker(svg, keyframes);
   //yield svg.node();
 
   for (const keyframe of keyframes) {
@@ -72,8 +74,12 @@ export async function renderRaceChart2(container) {
       .ease(d3.easeLinear);
 
     x.domain([0, keyframe[1][0].value]);
+
     updateBars(keyframe, transition)
     updateLabels(keyframe, transition)
+    updateAxis(keyframe, transition)
+    updateTicker(keyframe, transition)
+
     try {
       await transition.end();
     } catch (error) {
@@ -131,73 +137,99 @@ const bars = function (svg, prev, next, x, color) {
     .attr("fill-opacity", 0.6)
     .selectAll("rect");
 
-  return ([date, data], transition) => {
-    bar = bar
-      .data(data.slice(0, barCount), d => d.Entity)
-      .join(
-        enter => enter.append("rect")
-          .attr("fill", color)
-          .attr("height", y.bandwidth())
-          .attr("x", x(0))
-          .attr("y", d => {
-            return y(next.get(d) ? next.get(d).rank + 1 : barCount)
-          })
-          .attr("width", d => x((prev.get(d.Entity) || d).value) - x(0)),
-        update => update,
-        exit => exit.transition(transition).remove()
-          .attr("y", d => y((next.get(d.Entity) || d).rank))
-          .attr("width", d => {
-            console.log("exit width: ", (next.get(d.Entity) || d)?.value)
-            x((next.get(d)) || d)?.value - x(0)
-          })
-      )
-      .call(bar => bar.transition(transition)
-        .attr("y", d => y(d.rank))
-        .attr("width", d => x(d.value) - x(0)));
-  }
+  return ([date, data], transition) => bar = bar
+    .data(data.slice(0, barCount), d => d.Entity)
+    .join(
+      enter => enter.append("rect")
+        .attr("fill", color)
+        .attr("height", y.bandwidth())
+        .attr("x", x(0))
+        .attr("y", d => y((prev.get(d) || d).rank))
+        .attr("width", d => x((prev.get(d) || d).value) - x(0)),
+      update => update,
+      exit => exit.transition(transition).remove()
+        .attr("y", d => y((next.get(d) || d).rank))
+        .attr("width", d => x((next.get(d) || d).value) - x(0))
+    )
+    .call(bar => bar.transition(transition)
+      .attr("y", d => y(d.rank))
+      .attr("width", d => x(d.value) - x(0)));
 }
 
 const labels = function (svg, prev, next, x) {
-  const formatNumber = d3.format(",d")
+  
   let label = svg.append("g")
     .style("font", "bold 12px var(--sans-serif)")
+    .style("font-weight", "bold")
+    .style("font-variant-numeric", "tabular-nums")
     .attr("text-anchor", "end")
     .selectAll("text");
 
   return ([date, data], transition) => {
     label = label
-    .data(data.slice(0, barCount), d => d.Entity)
-    .join(
-      enter => enter.append("text")
-        .attr("transform", d => `translate(${x((prev.get(d.Entity) || d).value)},${y((prev.get(d.Entity) || d).rank)})`)
-        .attr("y", y.bandwidth() / 2)
-        .attr("x", -6)
-        .attr("dy", "-0.25em")
-        .text(d => d.Entity)
-        .call(text => text.append("tspan")
-          .attr("fill-opacity", 0.7)
-          .attr("font-weight", "normal")
+      .data(data.slice(0, barCount), d => d.Entity)
+      .join(
+        enter => enter.append("text")
+          .attr("transform", d => `translate(${x((prev.get(d) || d).value)},${y((prev.get(d) || d).rank)})`)
+          .attr("y", y.bandwidth() / 2)
           .attr("x", -6)
-          .attr("dy", "1.15em")),
-      update => update,
-      exit => exit.transition(transition).remove()
-        .attr("transform", d => `translate(${x((next.get(d.Entity) || d).value)},${y((next.get(d.Entity) || d).rank)})`)
-        .call(g => g.select("tspan")
-          .textTween((d) => d3.interpolateRound(d.value, (next.get(d.Entity) || d).value))
-        )
-    )
-    .call(bar => bar.transition(transition)
-      .attr("transform", d => `translate(${x(d.value)},${y(d.rank)})`)
-      .call(g => g.select("tspan")
-        .textTween((d) => (t) => formatNumber(
-          d3.interpolateNumber((prev.get(d.Entity) || d).value, d.value)(t)
-        ))
+          .attr("dy", "-0.25em")
+          .text(d => d.Entity)
+          .call(text => text.append("tspan")
+            .attr("fill-opacity", 0.7)
+            .attr("font-weight", "normal")
+            .attr("font-size", "13px")
+            .attr("x", -6)
+            .attr("dy", "1.15em")),
+        update => update,
+        exit => exit.transition(transition).remove()
+          .attr("transform", d => `translate(${x((next.get(d) || d).value)},${y((next.get(d) || d).rank)})`)
+          .call(g => g.select("tspan")
+            .textTween((d) => d3.interpolateRound(d.value, (next.get(d.Entity) || d).value))
+          )
       )
-    )}
-
-
+      .call(bar => bar.transition(transition)
+        .attr("transform", d => `translate(${x(d.value)},${y(d.rank)})`)
+        .call(g => g.select("tspan")
+          .textTween((d) => (t) =>
+            d3.interpolateNumber((prev.get(d) || d).value, d.value)(t).toFixed(2)
+          )
+        )
+      )
+  }
 
 }
 
+const axis = function (svg, x) {
+  const g = svg.append("g")
+    .attr("transform", `translate(0,${margins.top})`);
 
+  const axis = d3.axisTop(x)
+    .ticks(width / 160)
+    .tickSizeOuter(0)
+    .tickSizeInner(-barSize * (barCount + y.padding()));
 
+  return (_, transition) => {
+    g.transition(transition).call(axis);
+    g.select(".tick:first-of-type text").remove();
+    g.selectAll(".tick:not(:first-of-type) line").attr("stroke", "white");
+    g.select(".domain").remove();
+  };
+}
+
+const ticker = function(svg, keyframes) {
+  const formatDate = d3.utcFormat("%Y");
+
+  const now = svg.append("text")
+      .style("font", `bold ${barSize}px var(--sans-serif)`)
+      .style("font-variant-numeric", "tabular-nums")
+      .attr("text-anchor", "end")
+      .attr("x", width - 6)
+      .attr("y", margins.top + barSize * (barCount - 0.45))
+      .attr("dy", "0.32em")
+      .text(formatDate(keyframes[0][0]));
+
+  return ([date], transition) => {
+    transition.end().then(() => now.text(formatDate(date)));
+  };
+}

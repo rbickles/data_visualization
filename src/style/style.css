@@ -12,10 +12,7 @@
   fill: red;
 }
 
-.axis-label {
-    font-size: 12px;
-    font-family: Arial, sans-serif;
-}
+
 
 #tooltip {
   position: absolute;
