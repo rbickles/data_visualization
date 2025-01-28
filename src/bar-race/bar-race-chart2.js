@@ -10,8 +10,6 @@ const margins = { top: 20, right: 20, bottom: 20, left: 20 };
 const width = 1000;
 const height = margins.top + barSize * barCount + margins.bottom;
 
-let color;
-
 
 export async function renderRaceChart2(container) {
   container.innerHTML = `
@@ -23,10 +21,8 @@ export async function renderRaceChart2(container) {
   `;
 
   const data = await d3.csv("./src/data/meatConsumptionPerCapita.csv", d3.autoType)
-  console.log("CSV Data Loaded here:", data);
 
   //* data formatting
-  const groupData = d3.group(data, d => d.Entity);
   const Entities = new Set(data.map(d => d.Entity));
   const dateValues = Array.from(d3.rollup(data, ([d]) => d.Beef, d => d.Year, d => d.Entity))
     .map(([Year, data]) => [new Date(Year, 0, 1), data])
@@ -66,7 +62,6 @@ export async function renderRaceChart2(container) {
   const updateLabels = labels(svg, prev, next, x);
   const updateAxis = axis(svg, x);
   const updateTicker = ticker(svg, keyframes);
-  //yield svg.node();
 
   for (const keyframe of keyframes) {
     const transition = svg.transition()
@@ -89,14 +84,7 @@ export async function renderRaceChart2(container) {
 
   }
 
-  /*
-    svg.append("rect")
-      .attr("height", 50)
-      .attr("width", 100)
-      .attr("fill", "steelblue")
-  */
 
-  //document.body.appendChild(svg.node());
 }
 
 //* FUNCTIONS
@@ -156,6 +144,7 @@ const bars = function (svg, prev, next, x, color) {
       .attr("width", d => x(d.value) - x(0)));
 }
 
+//labels function
 const labels = function (svg, prev, next, x) {
   
   let label = svg.append("g")
@@ -200,6 +189,7 @@ const labels = function (svg, prev, next, x) {
 
 }
 
+//axis function
 const axis = function (svg, x) {
   const g = svg.append("g")
     .attr("transform", `translate(0,${margins.top})`);
@@ -217,6 +207,7 @@ const axis = function (svg, x) {
   };
 }
 
+//ticker function
 const ticker = function(svg, keyframes) {
   const formatDate = d3.utcFormat("%Y");
 
