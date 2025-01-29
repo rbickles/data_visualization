@@ -2,6 +2,7 @@ import { renderBarChart } from './product-category-bar-chart/product-category-ba
 import { renderRaceChart } from './bar-race/bar-race-chart.js'
 import { renderRaceChart2 } from './bar-race/bar-race-chart2.js'
 import { renderSuburstChart } from './sunburst/sunburst.js';
+import { renderTreeChart } from './tree/tree.js';
 
 const loadPage = (chartType) => {
   const contentDiv = document.getElementById('content');
@@ -15,9 +16,11 @@ const loadPage = (chartType) => {
     renderRaceChart2(contentDiv);
   } else if (chartType === 'sunburst') {
     renderSuburstChart(contentDiv)
+  } else if (chartType === 'tree') {
+    renderTreeChart(contentDiv) 
   }
 };
 
 window.loadPage = loadPage;
-document.addEventListener("DOMContentLoaded", () => loadPage('sunburst'));
+document.addEventListener("DOMContentLoaded", () => loadPage('tree'));
 
