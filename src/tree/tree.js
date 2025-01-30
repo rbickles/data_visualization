@@ -2,17 +2,26 @@ import * as d3 from "d3";
 
 const width = 960;
 //const height = 100;
-const margins = { top: 20, right: 20, bottom: 20, left: 20 };
+const margins = { top: 20, right: 20, bottom: 20, left: 100 };
 
 export async function renderTreeChart(container) {
   container.innerHTML = `
     <h1> Tree Chart</h1>
-    <p> You can expand this tree to view car pricing</p>
+    <p> You can expand this tree to view average selling price of cars</p>
     <svg id="tree"></svg>
   `;
 
   const data = await d3.csv("./src/data/car_price_dataset.csv", d3.autoType);
   console.log("data: ", data);
+
+  function mapToHierarchy(map) {
+    if (!(map instanceof Map)) return map; 
+
+    return Array.from(map, ([key, value]) => ({
+      name: key, 
+      children: mapToHierarchy(value),
+    }));
+  }
 
   const groupings = ["Brand", "Model", "Transmission"];
   const metric = "Price";
@@ -21,12 +30,12 @@ export async function renderTreeChart(container) {
     (group) => d3.mean(group, (d) => parseFloat(d[metric])),
     ...groupings.map((key) => (d) => d[key])
   );
-  const root = d3.hierarchy(groupedData);
+  const root = d3.hierarchy({ name: "Cars", children: mapToHierarchy(groupedData) });
   root.each((node, i) => {
-    node.id = i; // Assign a unique ID to each node
+    node.id = i;
   });
-  const dx = 10;
-  const dy = (width - margins.right - margins.left) / (1 + root.height);
+  const dx = 20;
+  const dy = (width - margins.right - margins.left) / (2 + root.height);
   console.log("root: ", root);
 
   const tree = d3.tree().nodeSize([dx, dy]);
@@ -34,7 +43,6 @@ export async function renderTreeChart(container) {
     .linkHorizontal()
     .x((d) => d.y)
     .y((d) => d.x);
-
 
   const svg = d3
     .select("#tree")
@@ -59,11 +67,11 @@ export async function renderTreeChart(container) {
 
   //* Helper functions
   const update = function (event, source) {
+    tree(root);
+
     const duration = event?.altKey ? 2500 : 250;
     const nodes = root.descendants().reverse();
     const links = root.links();
-
-    tree(root);
 
     let left = root;
     let right = root;
@@ -94,32 +102,39 @@ export async function renderTreeChart(container) {
       .attr("fill-opacity", 0)
       .attr("stroke-opacity", 0)
       .on("click", (event, d) => {
-        if (d.children) {
-          d._children = d.children;
-          d.children = null;
-        } else {
-          d.children = d._children;
-          d._children = null;
-        }
+        d.children = d.children ? null : d._children;
         update(event, d);
       });
 
+    const rectWidth = 80
+    const rectHeight = 17
+
     nodeEnter
-      .append("circle")
-      .attr("r", 2.5)
-      .attr("fill", (d) => (d._children ? "#555" : "#999"))
-      .attr("stroke-width", 10);
+      .append("rect")
+      .attr("y", -9)
+      .attr("x", -30)
+      .attr("width", rectWidth)
+      .attr("height", rectHeight)
+      .attr("rx", 3)
+      .attr("ry", 3)
+      .attr("fill", "#e6f4f0")
+      .attr("stroke", "#1abc9d")
+      .attr("opacity", d => d._children ? 1 : 0)
+      .attr("stroke-width", 1);
 
     nodeEnter
       .append("text")
       .attr("dy", "0.31em")
-      .attr("x", (d) => (d.children ? -6 : 6))
-      .attr("text-anchor", (d) => (d.children ? "end" : "start"))
-      .text((d) => d.data[0])
+      .attr("x", d => d._children ? 10 : 0)
+      .attr("text-anchor", d => d._children ? "middle" : "start")
+      .text((d) => d._children ? d.data.name : `${d.data.name} avg. sell price: (${d.data.children.toFixed(2)})`)
       .attr("stroke-linejoin", "round")
       .attr("stroke-width", 3)
       .attr("stroke", "white")
-      .attr("paint-order", "stroke");
+      .attr("paint-order", "stroke")
+      .attr("fill", d => d._children ? "black" : "#3498db");
+
+
 
     // Transition nodes to their new position.
     const nodeUpdate = node
@@ -138,13 +153,13 @@ export async function renderTreeChart(container) {
       .attr("fill-opacity", 0)
       .attr("stroke-opacity", 0);
 
-    // Update the links…
-    const link = gLink.selectAll("path").data(links, (d) => d.id);
+    const link = gLink.selectAll("path").data(links, (d) => d.target.id);
 
     // Enter any new links at the parent's previous position.
     const linkEnter = link
       .enter()
       .append("path")
+      .attr("stroke-width", .5)
       .attr("d", (d) => {
         const o = { x: source.x0, y: source.y0 };
         return diagonal({ source: o, target: o });
@@ -170,12 +185,15 @@ export async function renderTreeChart(container) {
     });
   };
 
-  root.descendants().forEach((d) => {
-    if (d.depth > 0) {
-      d._children = d.children;
-      d.children = null;
-    }
+  root.x0 = dy / 2;
+  root.y0 = 0;
+  root.descendants().forEach((d, i) => {
+    d.id = i;
+    d._children = d.children;
+    if (d.depth && d.data.name !== "Kia") d.children = null;
   });
 
   update(null, root);
+
+  return svg.node();
 }
