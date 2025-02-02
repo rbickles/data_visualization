@@ -4,6 +4,9 @@ import { renderRaceChart2 } from './bar-race/bar-race-chart2.js'
 import { renderSuburstChart } from './sunburst/sunburst.js';
 import { renderTreeChart } from './tree/tree.js';
 import { renderHoopChart } from './hoop-chart/hoop-chart.js';
+import { renderStandardBarChart } from './standard-bars/standard-bar.js';
+
+
 
 const loadPage = (chartType) => {
   const contentDiv = document.getElementById('content');
@@ -21,9 +24,11 @@ const loadPage = (chartType) => {
     renderTreeChart(contentDiv) 
   } else if (chartType === 'hoop') {
     renderHoopChart(contentDiv)
+  } else if (chartType === "standardBar") {
+    renderStandardBarChart(contentDiv)
   }
 };
 
 window.loadPage = loadPage;
-document.addEventListener("DOMContentLoaded", () => loadPage('hoop'));
+document.addEventListener("DOMContentLoaded", () => loadPage('standardBar'));
 

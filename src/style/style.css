@@ -29,6 +29,7 @@
 }
 
 /* Navigation Bar Styling */
+/* Navigation Bar Styling */
 .navbar {
   background-color: #333;
   padding: 15px 0;
@@ -40,11 +41,15 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;  /* Allow items to wrap onto multiple rows */
+  justify-content: center;
+  gap: 10px; /* Adds space between items */
 }
 
 .navbar ul li {
-  display: inline;
-  margin: 0 20px;
+  display: inline-block;
+  margin: 5px 10px; /* Space between items */
 }
 
 .navbar ul li a {
@@ -55,11 +60,13 @@
   padding: 10px 20px;
   border-radius: 5px;
   transition: all 0.3s ease-in-out;
+  display: inline-block; /* Ensures proper spacing when wrapping */
 }
 
 .navbar ul li a:hover {
   background-color: #f39c12;
   color: #fff;
 }
+
 
 
