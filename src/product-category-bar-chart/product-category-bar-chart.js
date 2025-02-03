@@ -246,13 +246,11 @@ const up = function (svg, d) {
           d3.select(this)
             .classed("bar-hover", true);
           showTooltip(event, d, tooltip);
-
         })
         .on("mouseout", function () {
           d3.select(this)
             .classed("bar-hover", false);
           hideTooltip(tooltip);
-
 
         })
         .on("click", (event, d) => down(svg, d))

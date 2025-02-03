@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 
 const width = 600;
-const height = 250;
+const height = 200;
 const margins = { top: 20, left: 20, bottom: 50, right: 20 };
 
 export async function renderStandardBarChart(container) {
@@ -18,12 +18,12 @@ export async function renderStandardBarChart(container) {
 
   const groupData = d3.rollup(
     data,
-    (v) => d3.mean(v, (d) => d.Beef),
+    (v) => d3.mean(v, (d) => d["Poultry"]),
     (d) => d.Entity
   );
 
   const groupArray = Array.from(groupData, ([key, value]) => ({ key, value }));
-  console.log("data", groupArray);
+  console.log("data", data);
 
   const x = d3
     .scaleBand()
@@ -55,8 +55,9 @@ export async function renderStandardBarChart(container) {
         .axisLeft(y)
         .tickValues(d3.ticks(...y.domain(), 3))
         .tickSize(-width + margins.left)
-    ).call(g => g.select(".domain").remove()) // Remove the axis domain line
-    .call(g => g.selectAll("line").attr("stroke-opacity", 0.1));
+    )
+    .call((g) => g.select(".domain").remove()) // Remove the axis domain line
+    .call((g) => g.selectAll("line").attr("stroke-opacity", 0.1));
 
   //* Bars
   svg

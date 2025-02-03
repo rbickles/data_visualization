@@ -5,6 +5,7 @@ import { renderSuburstChart } from './sunburst/sunburst.js';
 import { renderTreeChart } from './tree/tree.js';
 import { renderHoopChart } from './hoop-chart/hoop-chart.js';
 import { renderStandardBarChart } from './standard-bars/standard-bar.js';
+import { renderFunnelBarChart } from './standard-bars/funnel-bars.js';
 
 
 
@@ -26,9 +27,11 @@ const loadPage = (chartType) => {
     renderHoopChart(contentDiv)
   } else if (chartType === "standardBar") {
     renderStandardBarChart(contentDiv)
+  } else if (chartType === "funnelBar") {
+    renderFunnelBarChart(contentDiv)
   }
 };
 
 window.loadPage = loadPage;
-document.addEventListener("DOMContentLoaded", () => loadPage('standardBar'));
+document.addEventListener("DOMContentLoaded", () => loadPage('funnelBar'));
 
