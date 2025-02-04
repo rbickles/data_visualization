@@ -6,7 +6,7 @@ import { renderTreeChart } from './tree/tree.js';
 import { renderHoopChart } from './hoop-chart/hoop-chart.js';
 import { renderStandardBarChart } from './standard-bars/standard-bar.js';
 import { renderFunnelBarChart } from './standard-bars/funnel-bars.js';
-
+import { renderBudgetChart } from './city-budget/budget.js';
 
 
 const loadPage = (chartType) => {
@@ -29,9 +29,11 @@ const loadPage = (chartType) => {
     renderStandardBarChart(contentDiv)
   } else if (chartType === "funnelBar") {
     renderFunnelBarChart(contentDiv)
+  } else if (chartType === "budgetChart") {
+    renderBudgetChart(contentDiv)
   }
 };
 
 window.loadPage = loadPage;
-document.addEventListener("DOMContentLoaded", () => loadPage('funnelBar'));
+document.addEventListener("DOMContentLoaded", () => loadPage('budgetChart'));
 

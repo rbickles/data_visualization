@@ -7,7 +7,7 @@ const margins = { top: 20, right: 20, bottom: 20, left: 20 };
 export async function renderFunnelBarChart(container) {
   container.innerHTML = `
   <h1>Funnel bars</h1>
-  <p>This contains a Funnel chart</p>
+  <p>This contains a funnel chart detailing out retention rates between funnel steps</p>
   <svg id="funnelBar"></svg>`;
 
   const data = await d3.csv("./src/data/ga4_data.csv", d3.autoType);
@@ -29,14 +29,14 @@ export async function renderFunnelBarChart(container) {
     ([key, value]) => ({ key, value })
   ).sort((a, b) => eventOrder.indexOf(a.key) - eventOrder.indexOf(b.key));
 
-  console.log(groupedData);
+  console.log(data);
 
   const x = d3
     .scaleBand()
     .domain(groupedData.map((d) => d.key))
     .range([0, width])
     .paddingOuter(0.1)
-    .paddingInner(0.5);
+    .paddingInner(0.4);
 
   const y = d3
     .scaleLinear()
@@ -56,12 +56,10 @@ export async function renderFunnelBarChart(container) {
     })
     .join(" ");
 
-  console.log("linePoints", x.domain());
-
   const svg = d3
     .select("#funnelBar")
     .attr("viewBox", [0, 0, width, height])
-    .style("border", "1px solid black");
+    
 
   svg
     .append("path")
@@ -86,14 +84,43 @@ export async function renderFunnelBarChart(container) {
 
   svg
     .append("g")
+    .attr("transform", `translate(0, ${height - margins.bottom})`)
+    .call(d3.axisBottom(x))
+    .call(g => g.selectAll("path").remove())
+    .call(g => g.selectAll(".tick line").remove())
+    .selectAll("text")
+    .attr("text-anchor", "middle")
+    .style("font-size", "9px");
+
+  svg
+    .append("g")
     .selectAll("text")
     .data(groupedData)
     .enter()
     .append("text")
     .attr("transform", (d) => {
-      
-      console.log("labels", d)
-      return `translate(${x(d.key)}, ${y(d.value) - 5})`;
+      return `translate(${x(d.key) + x.bandwidth() / 2}, ${y(d.value) - 3})`;
     })
-    .text(d => d.key);
+    .text((d) => d.value)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "10px");
+
+  svg
+    .append("g")
+    .selectAll("text")
+    .data(groupedData)
+    .enter()
+    .append("text")
+    .attr("transform", (d) => {
+      return `translate(${x(d.key) + ((x.bandwidth() + x.step()) / 2)}, ${
+        y(d.value) + 10
+      })`;
+    })
+    .text((d, i) => {
+      const fallOff = (groupedData[i + 1]?.value ?? 0) / d.value;
+      return `${(fallOff * 100).toFixed(2)}%`;
+    })
+    .attr("text-anchor", "middle")
+    .attr("font-size", "8px")
+    .attr("opacity", 0.4);
 }

@@ -1,0 +1,41 @@
+Category,Subcategory,Amount
+Public Safety,Police Salaries,5000000
+Public Safety,Fire Department Equipment,1500000
+Public Safety,Emergency Services,1200000
+Public Safety,Crime Prevention Programs,800000
+Education,Teacher Salaries,7000000
+Education,School Infrastructure,3000000
+Education,Educational Programs,2000000
+Education,Student Supplies,1000000
+Healthcare,Hospital Funding,6000000
+Healthcare,Public Health Initiatives,2500000
+Healthcare,Mental Health Services,1800000
+Healthcare,Vaccination Programs,1500000
+Transportation,Road Maintenance,5000000
+Transportation,Public Transit,4000000
+Transportation,Bike Lanes and Sidewalks,1200000
+Transportation,Traffic Management,1000000
+Parks & Recreation,Park Maintenance,2000000
+Parks & Recreation,Recreation Programs,1500000
+Parks & Recreation,Public Pools,900000
+Parks & Recreation,Community Events,700000
+Housing & Development,Affordable Housing Projects,5000000
+Housing & Development,Urban Planning,2500000
+Housing & Development,Building Code Enforcement,1500000
+Housing & Development,Homeless Shelters,2000000
+Environmental Programs,Waste Management,3000000
+Environmental Programs,Renewable Energy Projects,2000000
+Environmental Programs,Water Conservation,1500000
+Environmental Programs,Air Quality Monitoring,800000
+Public Works,Sewer Maintenance,4000000
+Public Works,Street Lighting,2000000
+Public Works,Public Restrooms,1000000
+Public Works,City Landscaping,900000
+Social Services,Welfare Programs,3500000
+Social Services,Job Training,2000000
+Social Services,Childcare Assistance,1800000
+Social Services,Elderly Care Services,1500000
+Administration,Government Salaries,6000000
+Administration,Technology Upgrades,2500000
+Administration,Public Communications,1200000
+Administration,Legal Fees,1000000
