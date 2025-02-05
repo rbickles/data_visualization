@@ -14,6 +14,9 @@ export async function renderBudgetChart(container) {
   const data = await d3.csv("./src/data/city_budget.csv", d3.autoType);
   console.log("data", data);
 
+  const maxSubCategoryAmount = d3.max(data, (d) => d.Amount);
+  let oldValues = [];
+
   const formatData = (data) => {
     let hierarchy = { name: "City Budget", children: [] };
     let categoryMap = {};
@@ -42,61 +45,105 @@ export async function renderBudgetChart(container) {
   let hideTimeout;
 
   const showSideBar = function (event, data) {
+    console.log("called function", data);
     clearTimeout(hideTimeout);
 
-    const children = data.children;
-    console.log("children", children);
+    const children = data.children.map((child, i) => ({
+      ...child,
+      id: child.id || i,
+    }));
 
     const x = d3
       .scaleBand()
-      .domain(children.map((child) => child.data.name))
+      .domain(children.map((child) => child.id))
       .range([(2 * width) / 5 - margins.left, margins.left])
       .padding(0.1);
 
-    /*
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(children, (child) => child.value)])
-      .range([height - margins.bottom, margins.top]);
-*/
-    const y = d3
-      .scaleLinear()
-      .domain([0, d3.max(children, (child) => +child.value) * 1.05])
+      .domain([0, maxSubCategoryAmount])
       .range([height - margins.bottom, margins.top]);
 
-    const sidebar = svg.select("#sidebarGroup");
-
-    if (sidebar.empty()) {
+    if (svg.select("#sidebarGroup").empty()) {
       svg.append("g").attr("id", "sidebarGroup");
     }
-
-    console.log(
-      "working",
-      d3.max(children, (child) => child?.value)
-    );
 
     svg
       .select("#sidebarGroup")
       .selectAll("rect")
-      .data(children, (d) => d.data.name)
+      .data(children, (d) => d.id)
       .join(
         (enter) =>
           enter
             .append("rect")
-            .attr("x", (d) => x(d.data.name))
-            .attr("y", (d) => height - y(d.value))
+            .attr("x", (d) => x(d.id))
+            .attr("y", y(0))
+            .attr("data-value", (d) => d.value)
             .attr("width", x.bandwidth())
-            .attr("height", (d) => y(d.value) - margins.bottom)
-            .attr("fill", "steelblue"),
-        (update) => update,
-        (exit) => exit.transition().duration(300).attr("opacity", 0).remove()
+            .attr("height", 0)
+            .attr("fill", "steelblue")
+            .attr("rx", 5)
+            .attr("ry", 5)
+            .transition()
+            .duration(1000)
+            .attr("y", (d) => y(d.value))
+            .attr("height", (d) => y(0) - y(d.value)),
+        (update) =>
+          update
+            .transition()
+            .duration(1000)
+            .attr("y", (d) => y(d.value))
+            .attr("height", (d) => y(0) - y(d.value)),
+        (exit) => exit.remove()
       );
-  };
 
-  const hideSidebar = function () {
-    hideTimeout = setTimeout(() => {
-      showSideBar(null, { children: [] });
-    }, 200);
+    svg
+      .select("#sidebarGroup")
+      .selectAll("text")
+      .data(children, (d) => d.id)
+      .join(
+        (enter) =>
+          enter
+            .append("text")
+            .attr("x", (d) => x(d.id) + x.bandwidth() / 2)
+            .attr("y", (d) => y(0))
+            .text((d) => d3.format("$.3s")(d.value))
+            .attr("data-value", (d) => d.value)
+            .attr("font-size", "9px")
+            .attr("text-anchor", "middle")
+            .transition()
+            .duration(1000)
+            .attr("y", (d) => y(d.value))
+            .tween("text", function (d) {
+              const that = d3.select(this);
+              const i = d3.interpolateNumber(0, d.value);
+              return function (t) {
+                that.text(d3.format("$.3s")(i(t)));
+              };
+            })
+            .on("end", function () {
+              oldValues = children.map((d) => d.value);
+            }),
+        (update) =>
+          update
+            .transition()
+            .duration(1000)
+            .attr("y", (d) => y(d.value))
+            .tween("text", function (d) {
+              const that = d3.select(this);
+              console.log(oldValues[d.id]);
+              const i = d3.interpolateNumber(oldValues[d.id], d.value);
+              console.log("i", i(1));
+              return function (t) {
+                that.text(d3.format("$.3s")(i(t)));
+              };
+            })
+            .on("end", function () {
+              oldValues = children.map((d) => d.value);
+            }),
+        (exit) => exit.remove()
+      );
+    //console.log("oldValues", oldValues[0])
   };
 
   const y = d3
@@ -104,11 +151,7 @@ export async function renderBudgetChart(container) {
     .domain([0, d3.sum(data, (d) => d.Amount)])
     .range([height - margins.bottom, margins.top]);
 
-  const svg = d3
-    .select("#budgetChart")
-    .attr("viewBox", [0, 0, width, height])
-    .style("border", "1px solid black");
-
+  const svg = d3.select("#budgetChart").attr("viewBox", [0, 0, width, height]);
   svg
     .append("image")
     .attr("href", "src/images/city.png") // Use "href" instead of "xlink:href"
@@ -123,7 +166,7 @@ export async function renderBudgetChart(container) {
 
   svg
     .selectAll("rect")
-    .data(root.children, (d) => d.data.name)
+    .data(root.children, (d, i) => d.data.name)
     .enter()
     .append("rect")
     .attr("x", width / 2 - barWidth / 2)
@@ -140,8 +183,7 @@ export async function renderBudgetChart(container) {
     .attr("stroke-width", "2px")
     .on("mouseover", function (event, d) {
       showSideBar(event, d);
-    })
-    .on("mouseleave", hideSidebar);
+    });
 
   cumulativeHeight = 0;
   svg
@@ -163,6 +205,5 @@ export async function renderBudgetChart(container) {
     .attr("fill", "white")
     .on("mouseover", function (event, d) {
       showSideBar(event, d);
-    })
-    .on("mouseleave", hideSidebar);
+    });
 }
