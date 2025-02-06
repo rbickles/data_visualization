@@ -16,6 +16,7 @@ export async function renderBudgetChart(container) {
 
   const maxSubCategoryAmount = d3.max(data, (d) => d.Amount);
   let oldValues = [];
+  let oldAxis = [];
 
   const formatData = (data) => {
     let hierarchy = { name: "City Budget", children: [] };
@@ -44,14 +45,14 @@ export async function renderBudgetChart(container) {
   //! Helper functions
   let hideTimeout;
 
-  const showSideBar = function (event, data) {
-    console.log("called function", data);
+  const updateSideBar = function (event, data) {
     clearTimeout(hideTimeout);
 
     const children = data.children.map((child, i) => ({
       ...child,
       id: child.id || i,
     }));
+    console.log("called function", children);
 
     const x = d3
       .scaleBand()
@@ -62,7 +63,7 @@ export async function renderBudgetChart(container) {
     const y = d3
       .scaleLinear()
       .domain([0, maxSubCategoryAmount])
-      .range([height - margins.bottom, margins.top]);
+      .range([height - margins.bottom - 63, margins.top]);
 
     if (svg.select("#sidebarGroup").empty()) {
       svg.append("g").attr("id", "sidebarGroup");
@@ -113,7 +114,7 @@ export async function renderBudgetChart(container) {
             .attr("text-anchor", "middle")
             .transition()
             .duration(1000)
-            .attr("y", (d) => y(d.value))
+            .attr("y", (d) => y(d.value) - 3)
             .tween("text", function (d) {
               const that = d3.select(this);
               const i = d3.interpolateNumber(0, d.value);
@@ -128,12 +129,13 @@ export async function renderBudgetChart(container) {
           update
             .transition()
             .duration(1000)
-            .attr("y", (d) => y(d.value))
+            .attr("y", (d) => y(d.value) - 3)
             .tween("text", function (d) {
               const that = d3.select(this);
-              console.log(oldValues[d.id]);
-              const i = d3.interpolateNumber(oldValues[d.id], d.value);
-              console.log("i", i(1));
+              const i = d3.interpolateNumber(
+                oldValues[d.id] || 500000,
+                d.value
+              );
               return function (t) {
                 that.text(d3.format("$.3s")(i(t)));
               };
@@ -143,7 +145,41 @@ export async function renderBudgetChart(container) {
             }),
         (exit) => exit.remove()
       );
-    //console.log("oldValues", oldValues[0])
+
+    const xAxis = d3
+      .axisBottom(x)
+      .tickFormat((d) => children[d].data.name)
+      .tickSize(0);
+
+    const arraysEqual = (arr1, arr2) => {
+      console.log(arr1.every((val, index) => val === arr2[index]))
+      return arr1.every((val, index) => val === arr2[index]); // ✅ Compare each element
+    };
+
+    if (!arraysEqual(oldAxis, children.map(d => d.data.name))) {
+      const axisGroup = svg
+        .select("#sidebarGroup")
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0, ${height - margins.bottom - 60})`)
+        .call(xAxis);
+
+      axisGroup.select(".domain").remove();
+
+      axisGroup
+        .selectAll("text")
+        .attr("font-size", "7px")
+        .attr("text-anchor", "end")
+        .attr("transform", "rotate(-75)")
+        .attr("dy", "-0.5em")
+        .attr("dx", "-1em")
+        .style("opacity", 0)
+        .attr("fill", "black")
+        .transition()
+        .duration(1000)
+        .style("opacity", 1);
+        oldAxis = children.map(d => d.data.name)
+    }
   };
 
   const y = d3
@@ -182,7 +218,7 @@ export async function renderBudgetChart(container) {
     .attr("stroke", "white")
     .attr("stroke-width", "2px")
     .on("mouseover", function (event, d) {
-      showSideBar(event, d);
+      updateSideBar(event, d);
     });
 
   cumulativeHeight = 0;
@@ -204,6 +240,6 @@ export async function renderBudgetChart(container) {
     .attr("font-weight", "bold")
     .attr("fill", "white")
     .on("mouseover", function (event, d) {
-      showSideBar(event, d);
+      updateSideBar(event, d);
     });
 }
