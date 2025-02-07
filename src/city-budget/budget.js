@@ -16,7 +16,6 @@ export async function renderBudgetChart(container) {
 
   const maxSubCategoryAmount = d3.max(data, (d) => d.Amount);
   let oldValues = [];
-  let oldAxis = [];
 
   const formatData = (data) => {
     let hierarchy = { name: "City Budget", children: [] };
@@ -68,6 +67,24 @@ export async function renderBudgetChart(container) {
     if (svg.select("#sidebarGroup").empty()) {
       svg.append("g").attr("id", "sidebarGroup");
     }
+
+    if (svg.select("#yAxis").empty()) {
+      svg.append("g").attr("id", "yAxis")
+    }
+
+    svg
+      .select("yAxis")
+      .call(
+        d3
+          .axisLeft(y)
+          .tickValues(d3.ticks(...y.domain(), 3))
+          .tickFormat((d) => d3.format("$.2s")(d))
+          .tickSize((-2 * width) / 5 + margins.left + margins.right)
+      )
+      .attr("transform", `translate(${margins.left}, 0)`)
+      .attr("font-size", "5px")
+      .attr("color", "gray")
+      .attr("opacity", 0.3);
 
     svg
       .select("#sidebarGroup")
@@ -146,40 +163,29 @@ export async function renderBudgetChart(container) {
         (exit) => exit.remove()
       );
 
-    const xAxis = d3
-      .axisBottom(x)
-      .tickFormat((d) => children[d].data.name)
-      .tickSize(0);
+    const xAxis = d3.axisBottom(x).tickFormat((d) => children[d].data.name);
 
-    const arraysEqual = (arr1, arr2) => {
-      console.log(arr1.every((val, index) => val === arr2[index]))
-      return arr1.every((val, index) => val === arr2[index]); // ✅ Compare each element
-    };
+    const axisGroup = svg
+      .select("#sidebarGroup")
+      .append("g")
+      .attr("class", "axis")
+      .attr("transform", `translate(0, ${height - margins.bottom - 60})`)
+      .call(xAxis);
 
-    if (!arraysEqual(oldAxis, children.map(d => d.data.name))) {
-      const axisGroup = svg
-        .select("#sidebarGroup")
-        .append("g")
-        .attr("class", "axis")
-        .attr("transform", `translate(0, ${height - margins.bottom - 60})`)
-        .call(xAxis);
+    axisGroup.select(".domain").remove();
 
-      axisGroup.select(".domain").remove();
-
-      axisGroup
-        .selectAll("text")
-        .attr("font-size", "7px")
-        .attr("text-anchor", "end")
-        .attr("transform", "rotate(-75)")
-        .attr("dy", "-0.5em")
-        .attr("dx", "-1em")
-        .style("opacity", 0)
-        .attr("fill", "black")
-        .transition()
-        .duration(1000)
-        .style("opacity", 1);
-        oldAxis = children.map(d => d.data.name)
-    }
+    axisGroup
+      .selectAll("text")
+      .attr("font-size", "7px")
+      .attr("text-anchor", "end")
+      .attr("transform", "rotate(-75)")
+      .attr("dy", "-0.5em")
+      .attr("dx", "-1em")
+      .style("opacity", 0)
+      .attr("fill", "black")
+      .transition()
+      .duration(1000)
+      .style("opacity", 1);
   };
 
   const y = d3
