@@ -69,22 +69,23 @@ export async function renderBudgetChart(container) {
     }
 
     if (svg.select("#yAxis").empty()) {
-      svg.append("g").attr("id", "yAxis")
-    }
-
-    svg
-      .select("yAxis")
-      .call(
-        d3
-          .axisLeft(y)
-          .tickValues(d3.ticks(...y.domain(), 3))
-          .tickFormat((d) => d3.format("$.2s")(d))
-          .tickSize((-2 * width) / 5 + margins.left + margins.right)
-      )
-      .attr("transform", `translate(${margins.left}, 0)`)
-      .attr("font-size", "5px")
-      .attr("color", "gray")
-      .attr("opacity", 0.3);
+      svg
+        .select("#sidebarGroup")
+        .append("g")
+        .attr("id", "yAxis")
+        .call(
+          d3
+            .axisLeft(y)
+            .tickValues(d3.ticks(...y.domain(), 3))
+            .tickFormat((d) => d3.format("$.2s")(d))
+            .tickSize((-2 * width) / 5 + margins.left + margins.right)
+        )
+        .attr("transform", `translate(${margins.left}, 0)`)
+        .attr("font-size", "5px")
+        .attr("color", "gray")
+        .attr("opacity", 0.3)
+        .select(".domain").remove();
+    } 
 
     svg
       .select("#sidebarGroup")
@@ -196,10 +197,10 @@ export async function renderBudgetChart(container) {
   const svg = d3.select("#budgetChart").attr("viewBox", [0, 0, width, height]);
   svg
     .append("image")
-    .attr("href", "src/images/city.png") // Use "href" instead of "xlink:href"
+    .attr("href", "src/images/city.png") 
     .attr("x", width / 2 - barWidth / 2)
-    .attr("y", margins.top)
     .attr("width", barWidth)
+    .attr("y", margins.top)
     .attr("height", height - margins.top - margins.bottom)
     .attr("preserveAspectRatio", "xMidYMid slice");
 
@@ -212,12 +213,13 @@ export async function renderBudgetChart(container) {
     .enter()
     .append("rect")
     .attr("x", width / 2 - barWidth / 2)
+    .attr("width", barWidth)
+
     .attr("y", (d, i) => {
       let yPos = y(cumulativeHeight + d.value);
       cumulativeHeight += d.value + barPadding;
       return yPos;
     })
-    .attr("width", barWidth)
     .attr("height", (d) => y(0) - y(d.value) - barPadding)
     .attr("fill", "steelblue")
     .attr("fill-opacity", 0.3)
