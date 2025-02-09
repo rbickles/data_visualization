@@ -12,10 +12,11 @@ export async function renderBudgetChart(container) {
   <svg id="budgetChart"></svg>`;
 
   const data = await d3.csv("./src/data/city_budget.csv", d3.autoType);
-  console.log("data", data);
+  //console.log("data", data);
 
   const maxSubCategoryAmount = d3.max(data, (d) => d.Amount);
   let oldValues = [];
+  let previousHoveredId;
 
   const formatData = (data) => {
     let hierarchy = { name: "City Budget", children: [] };
@@ -44,14 +45,13 @@ export async function renderBudgetChart(container) {
   //! Helper functions
   let hideTimeout;
 
-  const updateSideBar = function (event, data) {
+  const updateSideBar = function (event, data, dataId) {
     clearTimeout(hideTimeout);
 
     const children = data.children.map((child, i) => ({
       ...child,
       id: child.id || i,
     }));
-    console.log("called function", children);
 
     const x = d3
       .scaleBand()
@@ -84,8 +84,9 @@ export async function renderBudgetChart(container) {
         .attr("font-size", "5px")
         .attr("color", "gray")
         .attr("opacity", 0.3)
-        .select(".domain").remove();
-    } 
+        .select(".domain")
+        .remove();
+    }
 
     svg
       .select("#sidebarGroup")
@@ -187,6 +188,26 @@ export async function renderBudgetChart(container) {
       .transition()
       .duration(1000)
       .style("opacity", 1);
+
+    svg
+      .selectAll(".bar-labels")
+      .filter(function () {
+        return d3.select(this).attr("data-id") === dataId;
+      })
+      .transition()
+      .duration(1000)
+      .attr("font-size", "17px")
+      .attr("opacity", 1);
+
+    svg
+      .selectAll(".bar-labels")
+      .filter(function () {
+        return d3.select(this).attr("data-id") !== dataId;
+      })
+      .transition()
+      .duration(1000)
+      .attr("font-size", "13px")
+      .attr("opacity", 0.2);
   };
 
   const y = d3
@@ -197,7 +218,7 @@ export async function renderBudgetChart(container) {
   const svg = d3.select("#budgetChart").attr("viewBox", [0, 0, width, height]);
   svg
     .append("image")
-    .attr("href", "src/images/city.png") 
+    .attr("href", "src/images/city.png")
     .attr("x", width / 2 - barWidth / 2)
     .attr("width", barWidth)
     .attr("y", margins.top)
@@ -214,7 +235,7 @@ export async function renderBudgetChart(container) {
     .append("rect")
     .attr("x", width / 2 - barWidth / 2)
     .attr("width", barWidth)
-
+    .attr("data-id", (d, i) => i)
     .attr("y", (d, i) => {
       let yPos = y(cumulativeHeight + d.value);
       cumulativeHeight += d.value + barPadding;
@@ -226,7 +247,10 @@ export async function renderBudgetChart(container) {
     .attr("stroke", "white")
     .attr("stroke-width", "2px")
     .on("mouseover", function (event, d) {
-      updateSideBar(event, d);
+      if (previousHoveredId !== d3.select(this).attr("data-id")) {
+        updateSideBar(event, d, d3.select(this).attr("data-id"));
+      }
+      previousHoveredId = d3.select(this).attr("data-id");
     });
 
   cumulativeHeight = 0;
@@ -237,6 +261,7 @@ export async function renderBudgetChart(container) {
     .enter()
     .append("text")
     .attr("x", width / 2 - barWidth / 2 + 2)
+    .attr("data-id", (d, i) => i)
     .attr("y", (d, i) => {
       let yPos = y(cumulativeHeight);
       cumulativeHeight += d.value + barPadding;
@@ -248,6 +273,29 @@ export async function renderBudgetChart(container) {
     .attr("font-weight", "bold")
     .attr("fill", "white")
     .on("mouseover", function (event, d) {
-      updateSideBar(event, d);
+      if (previousHoveredId !== d3.select(this).attr("data-id")) {
+        updateSideBar(event, d, d3.select(this).attr("data-id"));
+      }
+      previousHoveredId = d3.select(this).attr("data-id");
     });
+
+  svg
+    .append("g")
+    .selectAll("text")
+    .data(root.children, (d) => d.data.name)
+    .enter()
+    .append("text")
+    .attr("class", "bar-labels")
+    .attr("x", (3 * width) / 5 + 25)
+    .attr("data-id", (d, i) => i)
+    .attr("y", (d, i) => {
+      let yPos = y(cumulativeHeight);
+      cumulativeHeight += d.value + barPadding;
+      return yPos + 257;
+    })
+    .text((d) => d.data.name)
+    .attr("text-anchor", "start")
+    .attr("font-size", "13px")
+    .attr("fill", "black")
+    .attr("opacity", 0.2);
 }
