@@ -15,7 +15,8 @@
   "description": "",
   "dependencies": {
     "csv-parser": "^3.1.0",
-    "d3": "^7.9.0"
+    "d3": "^7.9.0",
+    "three": "^0.173.0"
   },
   "devDependencies": {
     "vite": "^6.0.7"
